@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import api from '../services/api';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Fab, Typography, Box, Button, Link, Tooltip, IconButton } from '@mui/material';
+import { toast } from 'react-toastify';
+import { jwtDecode } from 'jwt-decode';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Fab, Typography, Box, Button, Tooltip, IconButton, Select, MenuItem } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Bar } from 'react-chartjs-2';
@@ -11,19 +13,37 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, ChartTooltip, Le
 
 const Dashboard = () => {
     const [orders, setOrders] = useState([]);
+    const [userRole, setUserRole] = useState(null);
+
+    const fetchOrders = async () => {
+        try {
+            const res = await api.get('/orders');
+            setOrders(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const res = await api.get('/orders');
-                setOrders(res.data);
-            } catch (err) {
-                console.error(err);
-            }
-        };
+        const token = localStorage.getItem('token');
+        if (token) {
+            const decodedToken = jwtDecode(token);
+            setUserRole(decodedToken.role);
+        }
         fetchOrders();
     }, []);
 
+    const handleStatusChange = async (orderId, newStatus) => {
+        try {
+            await api.put(`/orders/${orderId}/status`, { status: newStatus });
+            toast.success('Order status updated!');
+            fetchOrders(); // Refresh the list
+        } catch (err) {
+               toast.error('Failed to update status.');
+        }
+    };
+
+    // --- LOGIC MOVED INSIDE THE COMPONENT ---
     const handleExport = async () => {
         try {
             const res = await api.get('/orders/export', { responseType: 'blob' });
@@ -38,7 +58,7 @@ const Dashboard = () => {
             console.error('Failed to export orders', err);
         }
     };
-    
+
     const chartData = {
         labels: orders.map(o => new Date(o.orderDate).toLocaleDateString()),
         datasets: [{
@@ -47,15 +67,20 @@ const Dashboard = () => {
             backgroundColor: 'rgba(25, 118, 210, 0.5)',
         }],
     };
+    // --- END OF MOVED LOGIC ---
 
     return (
         <Box>
             <Typography variant="h4" gutterBottom>Sales Analytics</Typography>
-            <Paper sx={{ p: 2, mb: 4 }}><Bar data={chartData} /></Paper>
-
+            <Paper sx={{ p: 2, mb: 4 }}>
+                <Bar data={chartData} />
+            </Paper>
+            
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4">Orders Dashboard</Typography>
-                <Button variant="contained" onClick={handleExport}>Export as JSON</Button>
+                <Typography variant="h4">
+                    {userRole === 'admin' ? 'All Orders' : 'My Orders'}
+                </Typography>
+                {userRole === 'admin' && <Button variant="contained" onClick={handleExport}>Export as JSON</Button>}
             </Box>
             <Paper>
                 <TableContainer>
@@ -65,8 +90,9 @@ const Dashboard = () => {
                                 <TableCell>Customer</TableCell>
                                 <TableCell>Email</TableCell>
                                 <TableCell align="right">Amount</TableCell>
-                                <TableCell>Date</TableCell>
+                                <TableCell>Status</TableCell>
                                 <TableCell align="center">Invoice</TableCell>
+                                {userRole === 'admin' && <TableCell>Actions</TableCell>}
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -75,7 +101,7 @@ const Dashboard = () => {
                                     <TableCell>{order.customerName}</TableCell>
                                     <TableCell>{order.customerEmail}</TableCell>
                                     <TableCell align="right">${order.orderAmount.toFixed(2)}</TableCell>
-                                    <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
+                                    <TableCell>{order.status}</TableCell>
                                     <TableCell align="center">
                                         <Tooltip title="View Invoice">
                                             <IconButton href={order.invoiceFileUrl} target="_blank" color="primary" rel="noopener noreferrer">
@@ -83,6 +109,21 @@ const Dashboard = () => {
                                             </IconButton>
                                         </Tooltip>
                                     </TableCell>
+                                    {userRole === 'admin' && (
+                                        <TableCell>
+                                            <Select
+                                                value={order.status}
+                                                onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                                                size="small"
+                                            >
+                                                <MenuItem value="Pending">Pending</MenuItem>
+                                                <MenuItem value="Processing">Processing</MenuItem>
+                                                <MenuItem value="Shipped">Shipped</MenuItem>
+                                                <MenuItem value="Delivered">Delivered</MenuItem>
+                                                <MenuItem value="Cancelled">Cancelled</MenuItem>
+                                            </Select>
+                                        </TableCell>
+                                    )}
                                 </TableRow>
                             ))}
                         </TableBody>
