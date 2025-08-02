@@ -26,7 +26,7 @@ const Signup = () => {
     };
 
     return (
-        <Paper sx={{ p: 4, maxWidth: 500, margin: 'auto' }}>
+      <Paper sx={{ p: { xs: 2, sm: 4 }, maxWidth: 600, margin: 'auto' }}>
             <Typography variant="h4" gutterBottom>Sign Up</Typography>
             <Box component="form" onSubmit={onSubmit}>
                 <TextField margin="normal" required fullWidth label="Email Address" name="email" value={email} onChange={onChange} />

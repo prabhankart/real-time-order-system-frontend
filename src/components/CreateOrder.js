@@ -38,7 +38,7 @@ const CreateOrder = () => {
     };
 
     return (
-        <Paper sx={{ p: 4, maxWidth: 600, margin: 'auto' }}>
+        <Paper sx={{ p: { xs: 2, sm: 4 }, maxWidth: 600, margin: 'auto' }}>
             <Typography variant="h4" gutterBottom>Create New Order</Typography>
             <Box component="form" onSubmit={onSubmit}>
                 <TextField margin="normal" required fullWidth label="Customer Name" value={customerName} onChange={e => setCustomerName(e.target.value)} />

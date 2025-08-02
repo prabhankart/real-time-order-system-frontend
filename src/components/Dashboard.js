@@ -37,13 +37,12 @@ const Dashboard = () => {
         try {
             await api.put(`/orders/${orderId}/status`, { status: newStatus });
             toast.success('Order status updated!');
-            fetchOrders(); // Refresh the list
+            fetchOrders();
         } catch (err) {
-               toast.error('Failed to update status.');
+            toast.error('Failed to update status.');
         }
     };
 
-    // --- LOGIC MOVED INSIDE THE COMPONENT ---
     const handleExport = async () => {
         try {
             const res = await api.get('/orders/export', { responseType: 'blob' });
@@ -67,7 +66,6 @@ const Dashboard = () => {
             backgroundColor: 'rgba(25, 118, 210, 0.5)',
         }],
     };
-    // --- END OF MOVED LOGIC ---
 
     return (
         <Box>
@@ -76,15 +74,25 @@ const Dashboard = () => {
                 <Bar data={chartData} />
             </Paper>
             
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            {/* --- RESPONSIVE HEADER --- */}
+            <Box sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Stacks vertically on mobile
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+                gap: 2 // Adds space between items when stacked
+            }}>
                 <Typography variant="h4">
                     {userRole === 'admin' ? 'All Orders' : 'My Orders'}
                 </Typography>
                 {userRole === 'admin' && <Button variant="contained" onClick={handleExport}>Export as JSON</Button>}
             </Box>
-            <Paper>
+            
+            {/* --- RESPONSIVE TABLE --- */}
+            <Paper sx={{ width: '100%', overflowX: 'auto' }}> {/* Makes table scroll horizontally */}
                 <TableContainer>
-                    <Table>
+                    <Table sx={{ minWidth: 650 }}> {/* Ensures table has a minimum width */}
                         <TableHead>
                             <TableRow>
                                 <TableCell>Customer</TableCell>
