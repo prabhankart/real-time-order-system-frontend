@@ -1,17 +1,22 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, useTheme, useMediaQuery } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, useTheme, useMediaQuery, Badge } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { useCart } from '../../context/CartContext';
+
+// Icons
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 const Header = () => {
     const navigate = useNavigate();
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check if screen is small
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const { cartItems } = useCart();
 
     const token = localStorage.getItem('token');
     let userRole = null;
@@ -32,49 +37,59 @@ const Header = () => {
     };
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" color="default" elevation={1}>
             <Toolbar>
-                <Typography variant="h6" component={Link} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
-                    Order Management
+                <Typography 
+                    variant="h6" 
+                    component={Link} 
+                    to="/" 
+                    sx={{ 
+                        flexGrow: 1, 
+                        textDecoration: 'none', 
+                        color: 'inherit',
+                        fontWeight: 'bold' 
+                    }}
+                >
+                    ShopCart
                 </Typography>
 
                 {isMobile ? (
-                    // --- Mobile View: Show only icons ---
+                    // --- Mobile View: Icons only ---
                     <>
-                        <IconButton color="inherit" component={Link} to="/products" title="Products">
-                            <StorefrontIcon />
-                        </IconButton>
+                        <IconButton color="inherit" component={Link} to="/products" title="Products"><StorefrontIcon /></IconButton>
                         {userRole === 'admin' && (
-                            <IconButton color="inherit" component={Link} to="/admin/products" title="Manage Products">
-                                <AdminPanelSettingsIcon />
-                            </IconButton>
+                            <IconButton color="inherit" component={Link} to="/admin/products" title="Manage Products"><AdminPanelSettingsIcon /></IconButton>
                         )}
+                        <IconButton color="inherit" component={Link} to="/cart" title="Shopping Cart">
+                            <Badge badgeContent={cartItems.length} color="primary">
+                                <ShoppingCartIcon />
+                            </Badge>
+                        </IconButton>
                         {token ? (
-                            <IconButton color="inherit" onClick={handleLogout} title="Logout">
-                                <LogoutIcon />
-                            </IconButton>
+                            <IconButton color="inherit" onClick={handleLogout} title="Logout"><LogoutIcon /></IconButton>
                         ) : (
                             <>
-                                <IconButton color="inherit" component={Link} to="/login" title="Login">
-                                    <LoginIcon />
-                                </IconButton>
-                                <IconButton color="inherit" component={Link} to="/signup" title="Sign Up">
-                                    <PersonAddIcon />
-                                </IconButton>
+                                <IconButton color="inherit" component={Link} to="/login" title="Login"><LoginIcon /></IconButton>
+                                <IconButton color="inherit" component={Link} to="/signup" title="Sign Up"><PersonAddIcon /></IconButton>
                             </>
                         )}
                     </>
                 ) : (
-                    // --- Desktop View: Show full buttons ---
+                    // --- Desktop View: Full buttons ---
                     <>
-                        <Button color="inherit" component={Link} to="/products">Products</Button>
+                        <Button color="inherit" component={Link} to="/products" startIcon={<StorefrontIcon />}>Products</Button>
                         {userRole === 'admin' && (
-                            <Button color="inherit" component={Link} to="/admin/products">
+                            <Button color="inherit" component={Link} to="/admin/products" startIcon={<AdminPanelSettingsIcon />}>
                                 Manage Products
                             </Button>
                         )}
+                        <IconButton color="inherit" component={Link} to="/cart" title="Shopping Cart">
+                            <Badge badgeContent={cartItems.length} color="primary">
+                                <ShoppingCartIcon />
+                            </Badge>
+                        </IconButton>
                         {token ? (
-                            <Button color="inherit" onClick={handleLogout}>Logout</Button>
+                            <Button color="inherit" onClick={handleLogout} startIcon={<LogoutIcon />}>Logout</Button>
                         ) : (
                             <Box>
                                 <Button color="inherit" component={Link} to="/login">Login</Button>

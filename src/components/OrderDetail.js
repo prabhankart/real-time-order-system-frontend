@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../services/api'; // <-- Use the api service
 import { Card, CardContent, Typography, Button, Box, CircularProgress, Chip, Grid, Divider } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -14,7 +14,8 @@ const OrderDetail = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const result = await axios(`http://localhost:5000/orders/${id}`);
+                // Use the api service to make the request
+                const result = await api.get(`/orders/${id}`);
                 setOrder(result.data);
             } catch (error) {
                 console.error("Failed to fetch order details", error);
@@ -46,15 +47,19 @@ const OrderDetail = () => {
                 <Chip label={`ID: ${order._id}`} color="primary" sx={{ mb: 2 }} />
                 <Divider sx={{ mb: 2 }} />
                 <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                         <Typography color="text.secondary">Customer Name:</Typography>
                         <Typography variant="h6">{order.customerName}</Typography>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
+                        <Typography color="text.secondary">Customer Email:</Typography>
+                        <Typography variant="h6">{order.customerEmail}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
                         <Typography color="text.secondary">Order Amount:</Typography>
                         <Typography variant="h6">${order.orderAmount.toFixed(2)}</Typography>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
+                    <Grid item xs={12} sm={6}>
                         <Typography color="text.secondary">Order Date:</Typography>
                         <Typography variant="h6">{new Date(order.orderDate).toLocaleString()}</Typography>
                     </Grid>
@@ -65,6 +70,7 @@ const OrderDetail = () => {
                         startIcon={<DownloadIcon />}
                         href={order.invoiceFileUrl}
                         target="_blank"
+                        rel="noopener noreferrer"
                     >
                         Download Invoice
                     </Button>

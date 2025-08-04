@@ -3,27 +3,32 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { Container, CssBaseline, Box } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { jwtDecode } from 'jwt-decode'; // <-- You will need to install this
-
+import { jwtDecode } from 'jwt-decode';
+import CartPage from './components/CartPage'; // <-- Import CartPage
 import Header from './components/layout/Header';
 import Dashboard from './components/Dashboard';
 import CreateOrder from './components/CreateOrder';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import ProductsPage from './components/ProductsPage'; // <-- New import
-import AdminProductsPage from './components/AdminProductsPage'; // <-- New import
+import ProductsPage from './components/ProductsPage';
+import AdminProductsPage from './components/AdminProductsPage';
+import OrderDetail from './components/OrderDetail'; 
 import { setAuthToken } from './services/api';
+import Footer from './components/layout/Footer'; // <-- Import the new footer
 
+// This block runs when the app first loads to keep the user logged in
+const token = localStorage.getItem('token');
+if (token) {
+    setAuthToken(token);
+}
+
+// Component to protect routes for any logged-in user
 const PrivateRoute = ({ children }) => {
     const token = localStorage.getItem('token');
-    if (token) {
-        setAuthToken(token);
-        return children;
-    }
-    return <Navigate to="/login" />;
+    return token ? children : <Navigate to="/login" />;
 };
 
-// New component to protect admin-only routes
+// Component to protect routes for admin users only
 const AdminRoute = ({ children }) => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -32,19 +37,17 @@ const AdminRoute = ({ children }) => {
 
     try {
         const decodedToken = jwtDecode(token);
-        // This assumes your JWT payload has a 'role' field
         if (decodedToken.role === 'admin') {
             return children;
         }
     } catch (error) {
-        // If token is invalid, redirect to login
+        console.error("Invalid token:", error);
         return <Navigate to="/login" />;
     }
     
-    // If user is not an admin, redirect them to the homepage
+    // If the user is logged in but is not an admin, send them to the homepage
     return <Navigate to="/" />;
 };
-
 
 function App() {
   return (
@@ -54,21 +57,26 @@ function App() {
         <Header />
         <Container component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
           <Routes>
-            {/* Auth Routes */}
+            {/* Authentication Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
 
             {/* Public Routes */}
             <Route path="/products" element={<ProductsPage />} />
 
-            {/* Protected Routes */}
+            {/* Protected Routes (for any logged-in user) */}
             <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/create" element={<PrivateRoute><CreateOrder /></PrivateRoute>} />
+              <Route path="/orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
+               <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} /> {/* <-- Add this route */}
+            
             
             {/* Admin-Only Route */}
             <Route path="/admin/products" element={<AdminRoute><AdminProductsPage /></AdminRoute>} />
           </Routes>
         </Container>
+         <Footer /> {/* <-- Replace Copyright with Footer */}
+      
       </Box>
       <ToastContainer position="bottom-right" theme="colored" />
     </Router>

@@ -18,10 +18,11 @@ const Login = () => {
         setLoading(true);
         try {
             const res = await api.post('/api/auth/login', { email, password });
+            
             localStorage.setItem('token', res.data.token);
             setAuthToken(res.data.token);
             toast.success('Login successful!');
-            navigate('/');
+            navigate('/products');
             window.location.reload();
         } catch (err) {
             toast.error('Invalid credentials.');

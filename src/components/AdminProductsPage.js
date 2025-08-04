@@ -28,7 +28,10 @@ const AdminProductsPage = () => {
         fetchProducts();
     }, []);
 
+    // --- THIS IS THE CRITICAL FUNCTION ---
+    // It updates the state as you type into the "Add Product" form
     const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+    
     const onEditChange = e => setCurrentProduct({ ...currentProduct, [e.target.name]: e.target.value });
 
     // Handle creating a new product
@@ -89,7 +92,10 @@ const AdminProductsPage = () => {
             <Paper sx={{ p: 4, mb: 4 }}>
                 <Typography variant="h5" gutterBottom>Add New Product</Typography>
                 <Box component="form" onSubmit={onSubmit}>
-                    {/* ... TextFields for the form ... */}
+                    <TextField margin="normal" required fullWidth label="Product Name" name="name" value={formData.name} onChange={onChange} />
+                    <TextField margin="normal" required fullWidth label="Description" name="description" value={formData.description} onChange={onChange} />
+                    <TextField margin="normal" required fullWidth label="Price ($)" name="price" type="number" value={formData.price} onChange={onChange} />
+                    <TextField margin="normal" required fullWidth label="Image URL" name="imageUrl" value={formData.imageUrl} onChange={onChange} />
                     <LoadingButton type="submit" fullWidth variant="contained" sx={{ mt: 2 }} loading={loading}>
                         Add Product
                     </LoadingButton>
@@ -104,7 +110,7 @@ const AdminProductsPage = () => {
                         <TableRow>
                             <TableCell>Name</TableCell>
                             <TableCell>Price</TableCell>
-                            <TableCell align="right">Actions</TableCell> {/* <-- New Column */}
+                            <TableCell align="right">Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
